@@ -1,12 +1,11 @@
 version: '3'
 services:
   api:
-    container_name: api-cc
+    container_name: api-platform
     build:
       context: ./
     ports:
       - "${WEB_PORT:-8070}:8080"
-      - "9005:9000"
     image: mafio69/api-symfony
     depends_on:
       - database
@@ -32,7 +31,7 @@ services:
       retries: 3
 
   database:
-    container_name: mysql-cc
+    container_name: mysql-platform
     ports:
       - "${DATABASE_PORT:-3308}:3306"
     image: mysql
@@ -42,16 +41,16 @@ services:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-4567}
       MYSQL_USER: ${DATABASE_USERNAME:-test}
       MYSQL_PASSWORD: ${DATABASE_PASSWORD:-1234}
-      MYSQL_DATABASE: ${DATABASE_NAME:-ccfound}
+      MYSQL_DATABASE: ${DATABASE_NAME:-platformfound}
 
   mailtrap:
-    container_name: mailtrap-tools
+    container_name: mailtrap-platform
     image: mailhog/mailhog
     logging:
       driver: 'none'  # disable saving logs
     ports:
-      - "1030:1025" # smtp server
-      - "8035:8025" # web ui
+      - "1045:1025" # smtp server
+      - "8045:8025" # web ui
 
 networks:
   default:
