@@ -1,0 +1,61 @@
+version: '3'
+services:
+  api:
+    container_name: api-cc
+    build:
+      context: ./
+    ports:
+      - "${WEB_PORT:-8070}:8080"
+      - "9005:9000"
+    image: mafio69/api-symfony
+    depends_on:
+      - database
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - XDEBUG_MODE=${XDEBUG_MODE:-debug}
+      - XDEBUG_REMOTE_AUTOSTART=1
+      - XDEBUG_CLIENT_HOST=${XDEBUG_CLIENT_HOST:-host.docker.internal}
+      - XDEBUG_CLIENT_PORT=${XDEBUG_CLIENT_PORT:-9003}
+    volumes:
+      - ./main:/main
+      - ./logs/symfony-logs:/main/var/log
+      - ./logs/:/var/log/cron
+    links:
+      - database:mysql
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${WEB_PORT}" ]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+  database:
+    container_name: mysql-cc
+    ports:
+      - "${DATABASE_PORT:-3308}:3306"
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-4567}
+      MYSQL_USER: ${DATABASE_USERNAME:-test}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-1234}
+      MYSQL_DATABASE: ${DATABASE_NAME:-ccfound}
+
+  mailtrap:
+    container_name: mailtrap-tools
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'  # disable saving logs
+    ports:
+      - "1030:1025" # smtp server
+      - "8035:8025" # web ui
+
+networks:
+  default:
+    external:
+      name: mf-net
+volumes:
+  mysql-data-proxy:
